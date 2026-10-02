@@ -1,0 +1,14 @@
+D:\mechmat\computer graphics\lab4\bin\Debug\net9.0-windows\Lab4Graph.exe
+D:\mechmat\computer graphics\lab4\bin\Debug\net9.0-windows\Lab4Graph.deps.json
+D:\mechmat\computer graphics\lab4\bin\Debug\net9.0-windows\Lab4Graph.runtimeconfig.json
+D:\mechmat\computer graphics\lab4\bin\Debug\net9.0-windows\Lab4Graph.dll
+D:\mechmat\computer graphics\lab4\bin\Debug\net9.0-windows\Lab4Graph.pdb
+D:\mechmat\computer graphics\lab4\obj\Debug\net9.0-windows\Lab4Graph.GeneratedMSBuildEditorConfig.editorconfig
+D:\mechmat\computer graphics\lab4\obj\Debug\net9.0-windows\Lab4Graph.AssemblyInfoInputs.cache
+D:\mechmat\computer graphics\lab4\obj\Debug\net9.0-windows\Lab4Graph.AssemblyInfo.cs
+D:\mechmat\computer graphics\lab4\obj\Debug\net9.0-windows\Lab4Graph.csproj.CoreCompileInputs.cache
+D:\mechmat\computer graphics\lab4\obj\Debug\net9.0-windows\Lab4Graph.dll
+D:\mechmat\computer graphics\lab4\obj\Debug\net9.0-windows\refint\Lab4Graph.dll
+D:\mechmat\computer graphics\lab4\obj\Debug\net9.0-windows\Lab4Graph.pdb
+D:\mechmat\computer graphics\lab4\obj\Debug\net9.0-windows\Lab4Graph.genruntimeconfig.cache
+D:\mechmat\computer graphics\lab4\obj\Debug\net9.0-windows\ref\Lab4Graph.dll

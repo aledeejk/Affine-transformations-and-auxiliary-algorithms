@@ -1,5 +1,8 @@
 namespace Lab4Graph
 {
+    //=======================================
+    //Деева
+    //=======================================
     partial class MainForm
     {
         private System.ComponentModel.IContainer components = null;

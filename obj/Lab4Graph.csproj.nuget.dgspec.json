@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\mechmat\\computer graphics\\lab4\\Lab4Graph.csproj": {}
+    "D:\\mechmat\\computer graphics\\lab4\\Affine-transformations-and-auxiliary-algorithms\\Lab4Graph.csproj": {}
   },
   "projects": {
-    "D:\\mechmat\\computer graphics\\lab4\\Lab4Graph.csproj": {
+    "D:\\mechmat\\computer graphics\\lab4\\Affine-transformations-and-auxiliary-algorithms\\Lab4Graph.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\mechmat\\computer graphics\\lab4\\Lab4Graph.csproj",
+        "projectUniqueName": "D:\\mechmat\\computer graphics\\lab4\\Affine-transformations-and-auxiliary-algorithms\\Lab4Graph.csproj",
         "projectName": "Lab4Graph",
-        "projectPath": "D:\\mechmat\\computer graphics\\lab4\\Lab4Graph.csproj",
+        "projectPath": "D:\\mechmat\\computer graphics\\lab4\\Affine-transformations-and-auxiliary-algorithms\\Lab4Graph.csproj",
         "packagesPath": "C:\\Users\\alexa\\.nuget\\packages\\",
-        "outputPath": "D:\\mechmat\\computer graphics\\lab4\\obj\\",
+        "outputPath": "D:\\mechmat\\computer graphics\\lab4\\Affine-transformations-and-auxiliary-algorithms\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -3,6 +3,9 @@ using System.Windows.Forms;
 
 namespace Lab4Graph
 {
+    //=======================================
+    //Деева
+    //=======================================
     internal static class Program
     {
         [STAThread]

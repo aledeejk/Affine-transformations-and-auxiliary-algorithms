@@ -3,6 +3,9 @@ using System.Drawing;
 
 namespace Lab4Graph
 {
+    //=======================================
+    //Деева
+    //=======================================
     public class AffineMatrix
     {
         public double[,] M { get; } = new double[3, 3];

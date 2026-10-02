@@ -8,6 +8,9 @@ using System.Windows.Forms;
 
 namespace Lab4Graph
 {
+    //=======================================
+    //Деева
+    //=======================================
     public partial class MainForm : Form
     {
         // Сцена

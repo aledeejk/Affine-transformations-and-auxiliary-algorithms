@@ -79,6 +79,20 @@ namespace Lab4Graph
             }
             return new RectangleF(minX, minY, maxX - minX, maxY - minY);
         }
+        //Сидорчик
+        // Центр полигона (центроид — среднее арифметическое вершин)
+        public PointF GetCenter()
+        {
+            if (Points.Count == 0) return PointF.Empty;
+
+            float sumX = 0, sumY = 0;
+            foreach (var p in Points)
+            {
+                sumX += p.X;
+                sumY += p.Y;
+            }
+            return new PointF(sumX / Points.Count, sumY / Points.Count);
+        }
 
         // Попадает ли точка в полигон (для выделения кликом)
         public bool ContainsPoint(PointF point, float tolerance)

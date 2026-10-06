@@ -33,6 +33,16 @@ namespace Lab4Graph
         private const int MaxUndoSteps = 50;
         private readonly Stack<List<Polygon>> undoStack = new Stack<List<Polygon>>();
 
+        //Сидорчик
+        // Режим ожидания клика мышью для задания точки (центра)
+        private bool waitingForPointPick = false;
+        // Что делать после того, как точка выбрана: "rotate" или "scale"
+        private string pendingAction = "";
+        // Коэффициенты для отложенного масштаба
+        private double pendingAlpha = 1;
+        private double pendingDelta = 1;
+        // Угол для отложенного поворота
+        private double pendingPhi = 0;
         // ============================================================
         // Пункты 8–10: режимы проверок
         private enum CheckMode { None, Intersect, PointInPoly, SideOfEdge }
@@ -92,6 +102,10 @@ namespace Lab4Graph
             btnRotate.Click += BtnRotate_Click;
             btnScale.Click += BtnScale_Click;
             btnReflectY.Click += BtnReflectY_Click;
+            //Сидорчик
+            btnPickPoint.Click += BtnPickPoint_Click;
+            btnRotateCenter.Click += BtnRotateCenter_Click;
+            btnScaleCenter.Click += BtnScaleCenter_Click;
 
             // ============================================================
             // Пункты 8–10
@@ -264,7 +278,49 @@ namespace Lab4Graph
         private void Canvas_MouseDown(object? sender, MouseEventArgs e)
         {
             var pt = new PointF(e.X, e.Y);
+            //Сидорчик(начало)
+            //  режим выбора точки мышью 
+            if (waitingForPointPick && e.Button == MouseButtons.Left)
+            {
+                waitingForPointPick = false;
+                Cursor = Cursors.Default;
 
+                var selected = GetSelected();
+                var targets = selected.Count > 0 ? selected : polygons;
+
+                if (targets.Count == 0) return;
+
+                SaveUndoState();
+
+                if (pendingAction == "rotate")
+                {
+                    foreach (var p in targets)
+                    {
+                        p.SaveSnapshot();
+                        p.ApplyTransform(AffineMatrix.RotationAroundPoint(pt.X, pt.Y, pendingPhi));
+                    }
+
+                    double deg = pendingPhi * 180.0 / Math.PI;
+                    lastTransformInfo = $"Поворот на {deg:0.##}° вокруг ({pt.X:0}, {pt.Y:0})";
+                }
+                else if (pendingAction == "scale")
+                {
+                    foreach (var p in targets)
+                    {
+                        p.SaveSnapshot();
+                        p.ApplyTransform(AffineMatrix.ScaleAroundPoint(pt.X, pt.Y, pendingAlpha, pendingDelta));
+                    }
+
+                    lastTransformInfo = $"Масштаб α={pendingAlpha}, δ={pendingDelta} от ({pt.X:0}, {pt.Y:0})";
+                }
+
+                statusLabel.Text = lastTransformInfo;
+                pendingAction = "";
+                Redraw();
+                return;
+            }
+            //Сидорчик (конец)
+            if (e.Button == MouseButtons.Left)
             if (e.Button == MouseButtons.Right)
             {
                 // ПКМ — выйти из режима проверки
@@ -595,6 +651,97 @@ namespace Lab4Graph
             },
             "Отражение: каждый от своего центра");
         }
+        //Сидорчик (начало)
+        //  ПОВОРОТ ВОКРУГ СВОЕГО ЦЕНТРА 
+        private void BtnRotateCenter_Click(object? sender, EventArgs e)
+        {
+            if (polygons.Count == 0)
+            {
+                MessageBox.Show("Сначала создайте полигон.");
+                return;
+            }
+
+            double deg = ParseDouble(txtPhi.Text);
+            double phi = deg * Math.PI / 180.0;
+
+            ApplyTransform(p =>
+            {
+                var c = p.GetCenter();
+                return AffineMatrix.RotationAroundPoint(c.X, c.Y, phi);
+            }, $"Поворот на {deg}° вокруг СВОЕГО центра");
+        }
+
+        // МАСШТАБ ВОКРУГ СВОЕГО ЦЕНТРА 
+        private void BtnScaleCenter_Click(object? sender, EventArgs e)
+        {
+            if (polygons.Count == 0)
+            {
+                MessageBox.Show("Сначала создайте полигон.");
+                return;
+            }
+
+            double alpha = ParseDouble(txtAlpha.Text);
+            double delta = ParseDouble(txtDelta.Text);
+
+            if (Math.Abs(alpha) < 0.0001 || Math.Abs(delta) < 0.0001)
+            {
+                MessageBox.Show("Коэффициенты α и δ не могут быть равны 0.");
+                return;
+            }
+
+            ApplyTransform(p =>
+            {
+                var c = p.GetCenter();
+                return AffineMatrix.ScaleAroundPoint(c.X, c.Y, alpha, delta);
+            }, $"Масштаб α={alpha}, δ={delta} вокруг СВОЕГО центра");
+        }
+
+        // ЗАДАТЬ ТОЧКУ МЫШЬЮ 
+        private void BtnPickPoint_Click(object? sender, EventArgs e)
+        {
+            if (polygons.Count == 0)
+            {
+                MessageBox.Show("Сначала создайте полигон.");
+                return;
+            }
+
+            // Спрашиваем у пользователя, какое действие выполнить
+            var result = MessageBox.Show(
+                "Выберите действие после указания точки:\n\n" +
+                "ДА — Поворот вокруг указанной точки\n" +
+                "НЕТ — Масштаб относительно указанной точки\n" +
+                "ОТМЕНА — отмена",
+                "Выбор действия",
+                MessageBoxButtons.YesNoCancel,
+                MessageBoxIcon.Question);
+
+            if (result == DialogResult.Cancel) return;
+
+            if (result == DialogResult.Yes)
+            {
+                pendingAction = "rotate";
+                double deg = ParseDouble(txtPhi.Text);
+                pendingPhi = deg * Math.PI / 180.0;
+                statusLabel.Text = "Кликните мышью по холсту, чтобы задать центр поворота...";
+            }
+            else
+            {
+                pendingAction = "scale";
+                pendingAlpha = ParseDouble(txtAlpha.Text);
+                pendingDelta = ParseDouble(txtDelta.Text);
+
+                if (Math.Abs(pendingAlpha) < 0.0001 || Math.Abs(pendingDelta) < 0.0001)
+                {
+                    MessageBox.Show("Коэффициенты α и δ не могут быть равны 0.");
+                    return;
+                }
+                statusLabel.Text = "Кликните мышью по холсту, чтобы задать центр масштабирования...";
+            }
+
+            waitingForPointPick = true;
+            Cursor = Cursors.Cross; // Меняем курсор, чтобы было видно
+        }
+        //Сидорчик(конец)
 
         // ============================================================
         // Парсинг

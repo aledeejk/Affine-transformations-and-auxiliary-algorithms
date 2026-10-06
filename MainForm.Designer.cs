@@ -23,7 +23,10 @@ namespace Lab4Graph
         private System.Windows.Forms.Button btnTranslate;
         private System.Windows.Forms.Button btnRotate;
         private System.Windows.Forms.Button btnScale;
-        private System.Windows.Forms.Button btnReflectY;
+        private System.Windows.Forms.Button btnReflectY;  
+        private System.Windows.Forms.Button btnRotateCenter;
+        private System.Windows.Forms.Button btnScaleCenter;
+        private System.Windows.Forms.Button btnPickPoint;
 
         //=======================================
         // Пункты 8–10
@@ -93,6 +96,9 @@ namespace Lab4Graph
             this.btnRotate = new System.Windows.Forms.Button();
             this.btnScale = new System.Windows.Forms.Button();
             this.btnReflectY = new System.Windows.Forms.Button();
+            this.btnRotateCenter = new System.Windows.Forms.Button();
+            this.btnScaleCenter = new System.Windows.Forms.Button();
+            this.btnPickPoint = new System.Windows.Forms.Button();
 
             //=======================================
             // Пункты 8–10
@@ -167,6 +173,9 @@ namespace Lab4Graph
             AddButton(this.toolPanel, this.btnPolygonMode, "Полигон", 8, ref y);
             AddButton(this.toolPanel, this.btnClear, "Очистить", 8, ref y);
             AddButton(this.toolPanel, this.btnUndo, "Отменить", 8, ref y);
+            AddButton(this.toolPanel, this.btnPickPoint, "Задать точку мышью", 8, ref y);
+            AddButton(this.toolPanel, this.btnRotateCenter, "Поворот (свой центр)", 8, ref y);
+            AddButton(this.toolPanel, this.btnScaleCenter, "Масштаб (свой центр)", 8, ref y);
 
             y += 14;
 

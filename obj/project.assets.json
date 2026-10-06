@@ -8,23 +8,23 @@
     "net9.0-windows7.0": []
   },
   "packageFolders": {
-    "C:\\Users\\alexa\\.nuget\\packages\\": {},
+    "C:\\Users\\alisa\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\mechmat\\computer graphics\\lab4\\Affine-transformations-and-auxiliary-algorithms\\Lab4Graph.csproj",
+      "projectUniqueName": "D:\\КОМПЬЮТЕРНАЯ ГРАФИКА\\Affine-transformations-and-auxiliary-algorithms\\Affine-transformations-and-auxiliary-algorithms\\Lab4Graph.csproj",
       "projectName": "Lab4Graph",
-      "projectPath": "D:\\mechmat\\computer graphics\\lab4\\Affine-transformations-and-auxiliary-algorithms\\Lab4Graph.csproj",
-      "packagesPath": "C:\\Users\\alexa\\.nuget\\packages\\",
-      "outputPath": "D:\\mechmat\\computer graphics\\lab4\\Affine-transformations-and-auxiliary-algorithms\\obj\\",
+      "projectPath": "D:\\КОМПЬЮТЕРНАЯ ГРАФИКА\\Affine-transformations-and-auxiliary-algorithms\\Affine-transformations-and-auxiliary-algorithms\\Lab4Graph.csproj",
+      "packagesPath": "C:\\Users\\alisa\\.nuget\\packages\\",
+      "outputPath": "D:\\КОМПЬЮТЕРНАЯ ГРАФИКА\\Affine-transformations-and-auxiliary-algorithms\\Affine-transformations-and-auxiliary-algorithms\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\alexa\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\alisa\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -75,7 +75,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -202,5 +202,103 @@ namespace Lab4Graph
             foreach (var p in Points)
                 g.DrawString($"({p.X:0},{p.Y:0})", font, textBrush, p.X + 6, p.Y + 6);
         }
+
+        // ============================================================
+        // 8: Пересечения ребер
+        // Проверяет, пересекаются ли два отрезка (a1,a2) и (b1,b2).
+        // Если точка пересечения найдена, возвращает её.
+        public static PointF? SegmentIntersection(PointF a1, PointF a2, PointF b1, PointF b2)
+        {
+            double d1x = a2.X - a1.X, d1y = a2.Y - a1.Y;
+            double d2x = b2.X - b1.X, d2y = b2.Y - b1.Y;
+
+            double denom = d1x * d2y - d1y * d2x;
+            if (Math.Abs(denom) < 1e-9) return null; // параллельны
+
+            double t = ((b1.X - a1.X) * d2y - (b1.Y - a1.Y) * d2x) / denom;
+            double u = ((b1.X - a1.X) * d1y - (b1.Y - a1.Y) * d1x) / denom;
+
+            if (t < 0 || t > 1 || u < 0 || u > 1) return null; // вне отрезков
+
+            return new PointF((float)(a1.X + t * d1x), (float)(a1.Y + t * d1y));
+        }
+
+        // 9: Выпуклость полигона
+        public bool IsConvex()
+        {
+            if (Kind != PolygonKind.Polygon || !Closed || Points.Count < 3)
+                return false;
+
+            int n = Points.Count;
+            int sign = 0;
+
+            for (int i = 0; i < n; i++)
+            {
+                PointF a = Points[i];
+                PointF b = Points[(i + 1) % n];
+                PointF c = Points[(i + 2) % n];
+
+                double cross = (b.X - a.X) * (c.Y - b.Y) - (b.Y - a.Y) * (c.X - b.X);
+
+                if (Math.Abs(cross) < 1e-6) continue; // коллинеарные
+
+                int s = cross > 0 ? 1 : -1;
+                if (sign == 0) sign = s;
+                else if (sign != s) return false; // знак меняется → невыпуклый
+            }
+            return true;
+        }
+
+        // 10: Классификация точки относительно ребра
+        // Возвращает:
+        //   > 0 — точка СЛЕВА от направленного ребра a→b
+        //   < 0 — точка СПРАВА
+        //   = 0 — на прямой (в пределах eps)
+        public static double SideOfEdge(PointF a, PointF b, PointF p)
+        {
+            // Векторное произведение (b - a) × (p - a)
+            return (b.X - a.X) * (p.Y - a.Y) - (b.Y - a.Y) * (p.X - a.X);
+        }
+
+        // Строковое представление стороны
+        public static string ClassifySide(PointF a, PointF b, PointF p, double eps = 1e-6)
+        {
+            double s = SideOfEdge(a, b, p);
+            if (Math.Abs(s) < eps) return "на прямой";
+            return s > 0 ? "СЛЕВА" : "СПРАВА";
+        }
+
+        // Минимальное расстояние от точки до контура полигона
+        public float DistanceToPolygon(PointF p)
+        {
+            if (Points.Count == 0) return float.MaxValue;
+
+            // Для точки — просто расстояние до неё
+            if (Kind == PolygonKind.Point)
+                return Distance(p, Points[0]);
+
+            float min = float.MaxValue;
+
+            // Расстояние до каждого ребра
+            for (int i = 0; i < Points.Count - 1; i++)
+            {
+                float d = DistanceToSegment(p, Points[i], Points[i + 1]);
+                if (d < min) min = d;
+            }
+
+            // Замыкающее ребро
+            if (Closed && Points.Count > 2)
+            {
+                float d = DistanceToSegment(p, Points[^1], Points[0]);
+                if (d < min) min = d;
+            }
+
+            // Если полигон — одна точка (на всякий случай)
+            if (Points.Count == 1)
+                min = Distance(p, Points[0]);
+
+            return min;
+        }
+        // ============================================================
     }
 }

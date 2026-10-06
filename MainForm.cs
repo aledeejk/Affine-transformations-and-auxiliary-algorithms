@@ -43,6 +43,25 @@ namespace Lab4Graph
         private double pendingDelta = 1;
         // Угол для отложенного поворота
         private double pendingPhi = 0;
+        // ============================================================
+        // Пункты 8–10: режимы проверок
+        private enum CheckMode { None, Intersect, PointInPoly, SideOfEdge }
+        private CheckMode checkMode = CheckMode.None;
+
+        // Для пункта 8: первое ребро задаётся кликами
+        private PointF? intersectFirstPoint = null;
+        private PointF? intersectSecondPoint = null;
+
+        // Для пункта 10: ребро (два клика) и проверяемая точка (третий клик)
+        private PointF? sideFirstPoint = null;
+        private PointF? sideSecondPoint = null;
+
+        // Сохранённые результаты для отрисовки (чтобы не терялись при Redraw)
+        private readonly List<(PointF pt, string text)> checkHints =
+            new List<(PointF, string)>();
+        private readonly List<(PointF a, PointF b, PointF p, string text)> sideResults = new List<(PointF, PointF, PointF, string)>();
+        
+        // ============================================================
 
         public MainForm()
         {
@@ -87,6 +106,22 @@ namespace Lab4Graph
             btnPickPoint.Click += BtnPickPoint_Click;
             btnRotateCenter.Click += BtnRotateCenter_Click;
             btnScaleCenter.Click += BtnScaleCenter_Click;
+
+            // ============================================================
+            // Пункты 8–10
+            btnIntersectMode.Click += (s, e) => SetCheckMode(CheckMode.Intersect);
+            btnPointInPolyMode.Click += (s, e) => SetCheckMode(CheckMode.PointInPoly);
+            btnSideMode.Click += (s, e) => SetCheckMode(CheckMode.SideOfEdge);
+            btnClearHints.Click += (s, e) =>
+            {
+                checkHints.Clear();
+                sideResults.Clear();
+                intersectFirstPoint = intersectSecondPoint = null;
+                sideFirstPoint = sideSecondPoint = null;
+                Redraw();
+                statusLabel.Text = "Подсказки очищены.";
+            };
+            // ============================================================
         }
 
         // ============================================================
@@ -158,6 +193,39 @@ namespace Lab4Graph
             Redraw();
             statusLabel.Text = $"Отменено. Осталось шагов: {undoStack.Count}";
         }
+
+        // ============================================================
+        // Пункты 8–10: установка режима проверки
+        private void SetCheckMode(CheckMode mode)
+        {
+            checkMode = mode;
+            currentPolygon = null;
+
+            // сброс промежуточных состояний
+            intersectFirstPoint = intersectSecondPoint = null;
+            sideFirstPoint = sideSecondPoint = null;
+
+            switch (mode)
+            {
+                case CheckMode.Intersect:
+                    statusLabel.Text =
+                        "Поиск пересечения с другими рёбрами. ЛКМ - выбрать начало ребра, повторный клик - конец. ПКМ - выход из режима проверки.";
+                    break;
+                case CheckMode.PointInPoly:
+                    statusLabel.Text =
+                        "Проверка принадлежности точки всем полигонам. ЛКМ - выбрать точку. ПКМ - выход из режима проверки.";
+                    break;
+                case CheckMode.SideOfEdge:
+                    statusLabel.Text =
+                        "ЛКМ выбрать 2 точки (ребро), затем 3-ю — проверяемую точку. ПКМ - выход из режима проверки.";
+                    break;
+                default:
+                    statusLabel.Text = "Режим проверок выключен.";
+                    break;
+            }
+            Redraw();
+        }
+        // ============================================================
 
         // ============================================================
         // ВЫДЕЛЕНИЕ — можно несколько
@@ -253,32 +321,35 @@ namespace Lab4Graph
             }
             //Сидорчик (конец)
             if (e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Right)
             {
-                if (selectMode)
+                // ПКМ — выйти из режима проверки
+                if (checkMode != CheckMode.None)
                 {
-                    var hit = FindPolygonAt(pt, 8f);
-
-                    if (hit != null)
-                    {
-                        // Toggle — добавить/убрать из выделения
-                        ToggleSelection(hit);
-                    }
-                    else
-                    {
-                        // Клик по пустому месту — снять всё
-                        DeselectAll();
-                        statusLabel.Text = "Выделение снято. Преобразования — ко ВСЕМ.";
-                    }
+                    SetCheckMode(CheckMode.None);
                     return;
                 }
-
-                // Иначе — создание
-                HandleLeftClick(pt);
-            }
-            else if (e.Button == MouseButtons.Right)
-            {
                 HandleRightClick();
+                return;
             }
+
+            if (e.Button != MouseButtons.Left) return;
+
+            // === Режимы проверок 8–10 ===
+            if (checkMode == CheckMode.Intersect) { HandleIntersectClick(pt); return; }
+            if (checkMode == CheckMode.PointInPoly) { HandlePointInPolyClick(pt); return; }
+            if (checkMode == CheckMode.SideOfEdge) { HandleSideClick(pt); return; }
+
+            // === Старое поведение ===
+            if (selectMode)
+            {
+                var hit = FindPolygonAt(pt, 8f);
+                if (hit != null) ToggleSelection(hit);
+                else { DeselectAll(); statusLabel.Text = "Выделение снято. Преобразования — ко ВСЕМ."; }
+                return;
+            }
+
+            HandleLeftClick(pt);
         }
 
         private void HandleLeftClick(PointF pt)
@@ -353,6 +424,13 @@ namespace Lab4Graph
         private void Canvas_MouseMove(object? sender, MouseEventArgs e)
         {
             coordsLabel.Text = $"({e.X}, {e.Y})";
+
+            // Перерисовка для превью линии (поставили первую точку, а вторую нет, отрисовываем линию динамически, чтобы было представление, как она будет выглядеть)
+            if (checkMode == CheckMode.Intersect && intersectFirstPoint != null)
+                Redraw();
+            else if (checkMode == CheckMode.SideOfEdge &&
+                     sideFirstPoint != null && sideSecondPoint == null)
+                Redraw();
         }
 
         private void Canvas_SizeChanged(object? sender, EventArgs e)
@@ -382,6 +460,57 @@ namespace Lab4Graph
 
                 currentPolygon?.Draw(g);
 
+                // === Пункт 8: рисуем вводимое ребро ===
+                if (checkMode == CheckMode.Intersect && intersectFirstPoint != null)
+                {
+                    using var pen = new Pen(Color.Purple, 2f) { DashStyle = DashStyle.Dash };
+                    var cur = canvas.PointToClient(Cursor.Position);
+                    g.DrawLine(pen, intersectFirstPoint.Value, cur);
+                }
+
+                // === Пункт 10: ребро и точка ===
+                if (checkMode == CheckMode.SideOfEdge)
+                {
+                    using var pen = new Pen(Color.DarkOrange, 2f) { DashStyle = DashStyle.Dash };
+
+                    if (sideFirstPoint != null && sideSecondPoint == null)
+                    {
+                        var cur = canvas.PointToClient(Cursor.Position);
+                        g.DrawLine(pen, sideFirstPoint.Value, cur);
+                    }
+                    else if (sideFirstPoint != null && sideSecondPoint != null)
+                    {
+                        g.DrawLine(pen, sideFirstPoint.Value, sideSecondPoint.Value);
+                    }
+
+                    foreach (var r in sideResults)
+                    {
+                        g.DrawLine(pen, r.a, r.b);
+                        using var br = new SolidBrush(Color.DarkOrange);
+                        g.FillEllipse(br, r.p.X - 5, r.p.Y - 5, 10, 10);
+
+                        using var font = new Font("Segoe UI", 10, FontStyle.Bold);
+                        g.DrawString(r.text, font, Brushes.DarkRed, r.p.X + 8, r.p.Y + 8);
+                    }
+                }
+
+                // === Подсказки пунктов 8 и 9 ===
+                using (var font = new Font("Segoe UI", 10, FontStyle.Bold))
+                using (var brush = new SolidBrush(Color.DarkRed))
+                {
+                    foreach (var h in checkHints)
+                    {
+                        using var marker = new SolidBrush(Color.Red);
+                        g.FillEllipse(marker, h.pt.X - 5, h.pt.Y - 5, 10, 10);
+
+                        var size = g.MeasureString(h.text, font);
+                        using var bg = new SolidBrush(Color.FromArgb(220, 255, 255, 200));
+                        g.FillRectangle(bg, h.pt.X + 8, h.pt.Y + 8, size.Width + 6, size.Height + 4);
+                        g.DrawString(h.text, font, brush, h.pt.X + 11, h.pt.Y + 10);
+                    }
+                }
+
+                // === Информация о последнем преобразовании ===
                 if (!string.IsNullOrEmpty(lastTransformInfo))
                 {
                     using var font = new Font("Segoe UI", 12, FontStyle.Bold);
@@ -390,7 +519,6 @@ namespace Lab4Graph
                     var size = g.MeasureString(lastTransformInfo, font);
                     using var bg = new SolidBrush(Color.FromArgb(220, 255, 255, 255));
                     g.FillRectangle(bg, 5, 5, size.Width + 10, size.Height + 4);
-
                     g.DrawString(lastTransformInfo, font, brush, 10, 8);
                 }
             }
@@ -625,6 +753,168 @@ namespace Lab4Graph
             if (double.TryParse(s, NumberStyles.Any, CultureInfo.CurrentCulture, out v))
                 return v;
             return 0;
+        }
+
+        // ============================================================
+        // 8. Пересечение рёбер
+        // ============================================================
+        private void HandleIntersectClick(PointF pt)
+        {
+            if (intersectFirstPoint == null)
+            {
+                intersectFirstPoint = pt;
+                statusLabel.Text = "Первая точка ребра задана. Выберите вторую.";
+                Redraw();
+                return;
+            }
+
+            intersectSecondPoint = pt;
+            var a1 = intersectFirstPoint.Value;
+            var a2 = intersectSecondPoint.Value;
+
+            int found = 0;
+            checkHints.Clear();
+
+            // перебираем все рёбра всех полигонов
+            foreach (var poly in polygons)
+            {
+                for (int i = 0; i < poly.Points.Count - 1; i++)
+                {
+                    var ip = Polygon.SegmentIntersection(a1, a2,
+                                                         poly.Points[i], poly.Points[i + 1]);
+                    if (ip.HasValue)
+                    {
+                        checkHints.Add((ip.Value, $"∩ ({ip.Value.X:0},{ip.Value.Y:0})"));
+                        found++;
+                    }
+                }
+                // замыкающее ребро
+                if (poly.Closed && poly.Points.Count > 2)
+                {
+                    var ip = Polygon.SegmentIntersection(a1, a2,
+                                                         poly.Points[^1], poly.Points[0]);
+                    if (ip.HasValue)
+                    {
+                        checkHints.Add((ip.Value, $"∩ ({ip.Value.X:0},{ip.Value.Y:0})"));
+                        found++;
+                    }
+                }
+            }
+
+            statusLabel.Text = found > 0
+                ? $"Найдено пересечений: {found}."
+                : "Пересечения не найдены.";
+
+            // Сбрасываем ввод, чтобы можно было сразу рисовать следующее ребро
+            intersectFirstPoint = null;
+            intersectSecondPoint = null;
+
+            Redraw();
+        }
+
+        // ============================================================
+        // 9. Принадлежность точки полигону (только БЛИЖАЙШЕМУ)
+        // ============================================================
+        private void HandlePointInPolyClick(PointF pt)
+        {
+            checkHints.Clear();
+
+            // Ищем ближайший полигон с >= 3 вершинами
+            Polygon? nearest = null;
+            float bestDist = float.MaxValue;
+
+            foreach (var poly in polygons)
+            {
+                if (poly.Kind != PolygonKind.Polygon || !poly.Closed || poly.Points.Count < 3)
+                    continue;
+
+                float d = poly.DistanceToPolygon(pt);
+                if (d < bestDist)
+                {
+                    bestDist = d;
+                    nearest = poly;
+                }
+            }
+
+            if (nearest == null)
+            {
+                statusLabel.Text = "Нет замкнутых полигонов для проверки.";
+                Redraw();
+                return;
+            }
+
+            // Проверяем только ближайший полигон
+            bool inside = IsPointInside(nearest.Points, pt);
+            bool convex = nearest.IsConvex();
+
+            string type = convex ? "выпуклый" : "невыпуклый";
+            string res = inside ? "Внутри" : "Снаружи";
+
+            // Индекс ближайшего полигона
+            int idx = polygons.IndexOf(nearest);
+
+            checkHints.Add((pt, $"[{idx}] {type}: {res}"));
+
+            statusLabel.Text = $"Точка {res.ToLower()} полигона [{idx}] ({type}).";
+
+            Redraw();
+        }
+
+        // Ray casting — точка внутри полигона
+        private static bool IsPointInside(List<PointF> poly, PointF p)
+        {
+            bool inside = false;
+            int n = poly.Count;
+            for (int i = 0, j = n - 1; i < n; j = i++)
+            {
+                if (((poly[i].Y > p.Y) != (poly[j].Y > p.Y)) &&
+                    (p.X < (poly[j].X - poly[i].X) * (p.Y - poly[i].Y) /
+                           (poly[j].Y - poly[i].Y) + poly[i].X))
+                {
+                    inside = !inside;
+                }
+            }
+            return inside;
+        }
+
+        // ============================================================
+        // ПУНКТ 10: Справа/слева от ребра
+        // ============================================================
+        private void HandleSideClick(PointF pt)
+        {
+            if (sideFirstPoint == null)
+            {
+                sideFirstPoint = pt;
+                statusLabel.Text = "Первая точка ребра задана. Выберите вторую.";
+                Redraw();
+                return;
+            }
+
+            if (sideSecondPoint == null)
+            {
+                sideSecondPoint = pt;
+                statusLabel.Text = "Ребро задано. Выберите точку для классификации.";
+                Redraw();
+                return;
+            }
+
+            // третий клик — проверяемая точка
+            var a = sideFirstPoint.Value;
+            var b = sideSecondPoint.Value;
+
+            string side = Polygon.ClassifySide(a, b, pt);
+
+            // сохраняем результат для отрисовки
+            sideResults.Add((a, b, pt, side));
+
+            statusLabel.Text = $"Точка {side} от ребра.";
+
+            // сбрасываем — можно сразу проверять следующую точку относительно ТОГО ЖЕ ребра
+            // (чтобы не перерисовывать ребро)
+            // sideFirstPoint и sideSecondPoint НЕ сбрасываем — удобно для серии проверок.
+            // Если нужно новое ребро — ПКМ.
+
+            Redraw();
         }
     }
 }

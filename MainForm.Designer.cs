@@ -28,6 +28,14 @@ namespace Lab4Graph
         private System.Windows.Forms.Button btnScaleCenter;
         private System.Windows.Forms.Button btnPickPoint;
 
+        //=======================================
+        // Пункты 8–10
+        private System.Windows.Forms.Button btnIntersectMode;
+        private System.Windows.Forms.Button btnPointInPolyMode;
+        private System.Windows.Forms.Button btnSideMode;
+        private System.Windows.Forms.Button btnClearHints;
+        //=======================================
+
         // Поля
         private System.Windows.Forms.TextBox txtDx;
         private System.Windows.Forms.TextBox txtDy;
@@ -45,6 +53,11 @@ namespace Lab4Graph
         private System.Windows.Forms.Label lblPhi;
         private System.Windows.Forms.Label lblAlpha;
         private System.Windows.Forms.Label lblDelta;
+
+        //=======================================
+        // Пункты 8–10
+        private System.Windows.Forms.Label lblHint;
+        //=======================================
 
         // Статус-бар
         private System.Windows.Forms.StatusStrip statusStrip;
@@ -87,6 +100,14 @@ namespace Lab4Graph
             this.btnScaleCenter = new System.Windows.Forms.Button();
             this.btnPickPoint = new System.Windows.Forms.Button();
 
+            //=======================================
+            // Пункты 8–10
+            this.btnIntersectMode = new System.Windows.Forms.Button();
+            this.btnPointInPolyMode = new System.Windows.Forms.Button();
+            this.btnSideMode = new System.Windows.Forms.Button();
+            this.btnClearHints = new System.Windows.Forms.Button();
+            //=======================================
+
             // Поля
             this.txtDx = new System.Windows.Forms.TextBox();
             this.txtDy = new System.Windows.Forms.TextBox();
@@ -104,6 +125,11 @@ namespace Lab4Graph
             this.lblPhi = new System.Windows.Forms.Label();
             this.lblAlpha = new System.Windows.Forms.Label();
             this.lblDelta = new System.Windows.Forms.Label();
+
+            //=======================================
+            // Пункты 8–10
+            this.lblHint = new System.Windows.Forms.Label();
+            //=======================================
 
             // Компоновка
             ((System.ComponentModel.ISupportInitialize)this.canvas).BeginInit();
@@ -180,6 +206,26 @@ namespace Lab4Graph
             AddTextBox(this.toolPanel, this.txtDelta, "1", 8, ref y);
             AddButton(this.toolPanel, this.btnScale, "Растянуть", 8, ref y);
             AddButton(this.toolPanel, this.btnReflectY, "Отражение (Y)", 8, ref y);
+
+            //=======================================
+            // Пункты 8–10
+            y += 14;
+
+            AddLabel(this.toolPanel, this.lblHint, "— Проверки (8–10) —", 8, ref y);
+
+            AddButton(this.toolPanel, this.btnIntersectMode,
+                "Пересечение рёбер", 8, ref y);
+
+            AddButton(this.toolPanel, this.btnPointInPolyMode,
+                "Точка в полигоне", 8, ref y);
+
+            AddButton(this.toolPanel, this.btnSideMode,
+                "Точка и ребро", 8, ref y);
+
+            AddButton(this.toolPanel, this.btnClearHints,
+                "Убрать подсказки", 8, ref y);
+
+            //=======================================
 
             // Собираем
             this.toolPanelScroll.Controls.Add(this.toolPanel);

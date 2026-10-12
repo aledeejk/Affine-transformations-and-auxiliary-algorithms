@@ -15,6 +15,13 @@ namespace Lab4Graph
         Polygon
     }
 
+    public enum PointPosition
+    {
+        Outside,
+        Inside,
+        OnBoundary
+    }
+
     public class Polygon
     {
         public List<PointF> Points { get; } = new List<PointF>();
@@ -120,12 +127,12 @@ namespace Lab4Graph
 
             // Проверка "точка внутри" — через ray casting
             if (Closed && Points.Count >= 3)
-                return IsPointInsidePolygon(point, Points);
+                return IsPointInsidePolygon(point);
 
             return false;
         }
 
-        private static float DistanceToSegment(PointF p, PointF a, PointF b)
+        public static float DistanceToSegment(PointF p, PointF a, PointF b)
         {
             float dx = b.X - a.X;
             float dy = b.Y - a.Y;
@@ -150,20 +157,60 @@ namespace Lab4Graph
             return (float)Math.Sqrt(dx * dx + dy * dy);
         }
 
-        private static bool IsPointInsidePolygon(PointF p, List<PointF> polygon)
+        // Ray casting — точка СТРОГО внутри замкнутого полигона.
+        // Результат не определён для точек на границе (см. ClassifyPoint).
+        public bool IsPointInsidePolygon(PointF p)
         {
+            if (Kind != PolygonKind.Polygon || !Closed || Points.Count < 3)
+                return false;
+
             bool inside = false;
-            int n = polygon.Count;
+            int n = Points.Count;
             for (int i = 0, j = n - 1; i < n; j = i++)
             {
-                if (((polygon[i].Y > p.Y) != (polygon[j].Y > p.Y)) &&
-                    (p.X < (polygon[j].X - polygon[i].X) * (p.Y - polygon[i].Y) /
-                           (polygon[j].Y - polygon[i].Y) + polygon[i].X))
+                if (((Points[i].Y > p.Y) != (Points[j].Y > p.Y)) &&
+                    (p.X < (Points[j].X - Points[i].X) * (p.Y - Points[i].Y) /
+                           (Points[j].Y - Points[i].Y) + Points[i].X))
                 {
                     inside = !inside;
                 }
             }
             return inside;
+        }
+
+        // Классификация точки относительно полигона.
+        // Сначала проверяем границу (по DistanceToSegment),
+        // затем строгое внутри/снаружи
+        public PointPosition ClassifyPoint(PointF pt, float tolerance)
+        {
+            // На границе?
+            if (Kind == PolygonKind.Point)
+            {
+                if (Distance(pt, Points[0]) <= tolerance)
+                    return PointPosition.OnBoundary;
+                return PointPosition.Outside;
+            }
+
+            if (Kind == PolygonKind.Edge && Points.Count >= 2)
+            {
+                if (DistanceToSegment(pt, Points[0], Points[1]) <= tolerance)
+                    return PointPosition.OnBoundary;
+                return PointPosition.Outside;
+            }
+
+            // пробегаем все рёбра, включая замыкающее
+            for (int i = 0; i < Points.Count - 1; i++)
+                if (DistanceToSegment(pt, Points[i], Points[i + 1]) <= tolerance)
+                    return PointPosition.OnBoundary;
+
+            if (Closed && Points.Count > 2)
+                if (DistanceToSegment(pt, Points[^1], Points[0]) <= tolerance)
+                    return PointPosition.OnBoundary;
+
+            // Точка не на границе — ray casting
+            return IsPointInsidePolygon(pt)
+                ? PointPosition.Inside
+                : PointPosition.Outside;
         }
 
         public void Draw(Graphics g)

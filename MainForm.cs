@@ -320,7 +320,6 @@ namespace Lab4Graph
                 return;
             }
             //Сидорчик (конец)
-            if (e.Button == MouseButtons.Left)
             if (e.Button == MouseButtons.Right)
             {
                 // ПКМ — выйти из режима проверки
@@ -843,38 +842,25 @@ namespace Lab4Graph
                 return;
             }
 
-            // Проверяем только ближайший полигон
-            bool inside = IsPointInside(nearest.Points, pt);
+            // Классификация точки относительно ближайшего полигона
+            var pos = nearest.ClassifyPoint(pt, tolerance: 2f);
+
             bool convex = nearest.IsConvex();
-
             string type = convex ? "выпуклый" : "невыпуклый";
-            string res = inside ? "Внутри" : "Снаружи";
 
-            // Индекс ближайшего полигона
+            string res = pos switch
+            {
+                PointPosition.Inside => "Внутри",
+                PointPosition.Outside => "Снаружи",
+                PointPosition.OnBoundary => "На границе",
+                _ => "?"
+            };
+
             int idx = polygons.IndexOf(nearest);
-
             checkHints.Add((pt, $"[{idx}] {type}: {res}"));
-
-            statusLabel.Text = $"Точка {res.ToLower()} полигона [{idx}] ({type}).";
+            statusLabel.Text = $"Точка: {res.ToLower()} полигона [{idx}] ({type}).";
 
             Redraw();
-        }
-
-        // Ray casting — точка внутри полигона
-        private static bool IsPointInside(List<PointF> poly, PointF p)
-        {
-            bool inside = false;
-            int n = poly.Count;
-            for (int i = 0, j = n - 1; i < n; j = i++)
-            {
-                if (((poly[i].Y > p.Y) != (poly[j].Y > p.Y)) &&
-                    (p.X < (poly[j].X - poly[i].X) * (p.Y - poly[i].Y) /
-                           (poly[j].Y - poly[i].Y) + poly[i].X))
-                {
-                    inside = !inside;
-                }
-            }
-            return inside;
         }
 
         // ============================================================
@@ -909,9 +895,6 @@ namespace Lab4Graph
 
             statusLabel.Text = $"Точка {side} от ребра.";
 
-            // сбрасываем — можно сразу проверять следующую точку относительно ТОГО ЖЕ ребра
-            // (чтобы не перерисовывать ребро)
-            // sideFirstPoint и sideSecondPoint НЕ сбрасываем — удобно для серии проверок.
             // Если нужно новое ребро — ПКМ.
 
             Redraw();

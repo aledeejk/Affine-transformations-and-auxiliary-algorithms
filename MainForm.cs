@@ -43,7 +43,6 @@ namespace Lab4Graph
         private double pendingDelta = 1;
         // Угол для отложенного поворота
         private double pendingPhi = 0;
-
         // ============================================================
         // Пункты 8–10: режимы проверок
         private enum CheckMode { None, Intersect, PointInPoly, SideOfEdge }
@@ -252,7 +251,7 @@ namespace Lab4Graph
         }
 
         // ПЕРЕКЛЮЧИТЬ выделение одного полигона (toggle)
-        // НЕ трогает остальные
+        // НЕ трогает остальные!
         private void ToggleSelection(Polygon poly)
         {
             poly.Selected = !poly.Selected;
@@ -282,7 +281,8 @@ namespace Lab4Graph
         {
             var pt = new PointF(e.X, e.Y);
 
-            // ── Сидорчик: режим выбора точки мышью ──────────────────
+            //Сидорчик(начало)
+            //  режим выбора точки мышью
             if (waitingForPointPick && e.Button == MouseButtons.Left)
             {
                 waitingForPointPick = false;
@@ -322,15 +322,12 @@ namespace Lab4Graph
                 Redraw();
                 return;
             }
-<<<<<<< Updated upstream
             //Сидорчик (конец)
-=======
 
-            // ── ПРАВАЯ КНОПКА МЫШИ ─────────────────────────────────
-            // ПКМ — либо выход из режима проверки, либо замыкание полигона
->>>>>>> Stashed changes
+            // ── ПРАВАЯ КНОПКА МЫШИ ─────────────────────────────────────
             if (e.Button == MouseButtons.Right)
             {
+                // ПКМ — выйти из режима проверки
                 if (checkMode != CheckMode.None)
                 {
                     SetCheckMode(CheckMode.None);
@@ -340,7 +337,6 @@ namespace Lab4Graph
                 return;
             }
 
-            // ── Дальше обрабатываем только ЛКМ ─────────────────────
             if (e.Button != MouseButtons.Left) return;
 
             // === Режимы проверок 8–10 ===
@@ -353,11 +349,7 @@ namespace Lab4Graph
             {
                 var hit = FindPolygonAt(pt, 8f);
                 if (hit != null) ToggleSelection(hit);
-                else
-                {
-                    DeselectAll();
-                    statusLabel.Text = "Выделение снято. Преобразования — ко ВСЕМ.";
-                }
+                else { DeselectAll(); statusLabel.Text = "Выделение снято. Преобразования — ко ВСЕМ."; }
                 return;
             }
 
@@ -541,26 +533,77 @@ namespace Lab4Graph
         // ============================================================
         // Кнопки
         // ============================================================
+        // «Очистить всё» — сбрасывает ВСЁ состояние формы:
+        // полигоны, подсказки, режимы проверок, отложенные действия,
+        // галочку выделения, информацию о преобразовании и курсор.
         private void BtnClear_Click(object? sender, EventArgs e)
         {
-            if (polygons.Count == 0) return;
+            // Если сцена пуста и никакие режимы не активны — нечего очищать
+            if (polygons.Count == 0 &&
+                currentPolygon == null &&
+                checkHints.Count == 0 &&
+                sideResults.Count == 0 &&
+                checkMode == CheckMode.None &&
+                !waitingForPointPick &&
+                !selectMode)
+            {
+                return;
+            }
 
-            SaveUndoState();
+            // Сохраняем состояние для отмены (только если есть что отменять)
+            if (polygons.Count > 0 || currentPolygon != null)
+                SaveUndoState();
 
+            // ── 1. Полигоны и текущий незамкнутый полигон ─────────────
             polygons.Clear();
             currentPolygon = null;
+
+            // ── 2. Результаты проверок (пункты 8–10) ──────────────────
+            checkHints.Clear();
+            sideResults.Clear();
+
+            // ── 3. Промежуточные точки режимов проверок ───────────────
+            intersectFirstPoint = null;
+            intersectSecondPoint = null;
+            sideFirstPoint = null;
+            sideSecondPoint = null;
+
+            // ── 4. Активный режим проверки ────────────────────────────
+            checkMode = CheckMode.None;
+
+            // ── 5. Отложенные действия («Задать точку мышью») ─────────
+            waitingForPointPick = false;
+            pendingAction = "";
+            pendingAlpha = 1;
+            pendingDelta = 1;
+            pendingPhi = 0;
+            Cursor = Cursors.Default;
+
+            // ── 6. Режим выделения — снимаем галочку ──────────────────
+            //    (событие ChkSelectMode_CheckedChanged само сделает
+            //     DeselectAll и Redraw)
+            if (chkSelectMode.Checked)
+            {
+                chkSelectMode.Checked = false;
+            }
+            else
+            {
+                // На случай, если галочка уже снята, но флаг остался true
+                selectMode = false;
+                DeselectAll();
+            }
+
+            // ── 7. Информация о преобразовании ────────────────────────
             lastTransformInfo = "";
+
+            // ── 8. Финальная перерисовка ──────────────────────────────
             Redraw();
-            statusLabel.Text = "Сцена очищена. Можно отменить.";
+            statusLabel.Text = "Сцена и все режимы очищены.";
         }
 
         // ============================================================
         // ПРИМЕНЕНИЕ ПРЕОБРАЗОВАНИЯ
         // ============================================================
-        // Если есть выделенные — только к ним.
-        // Если нет — ко всем.
-        // matrixFunc принимает полигон и возвращает ЕГО матрицу
-        // (для отражения — у каждого свой центр, поэтому параметр нужен).
         private void ApplyTransform(Func<Polygon, AffineMatrix> matrixFunc, string info)
         {
             var selected = GetSelected();
@@ -663,7 +706,6 @@ namespace Lab4Graph
             },
             "Отражение: каждый от своего центра");
         }
-
         //Сидорчик (начало)
         //  ПОВОРОТ ВОКРУГ СВОЕГО ЦЕНТРА
         private void BtnRotateCenter_Click(object? sender, EventArgs e)
@@ -718,7 +760,6 @@ namespace Lab4Graph
                 return;
             }
 
-            // Спрашиваем у пользователя, какое действие выполнить
             var result = MessageBox.Show(
                 "Выберите действие после указания точки:\n\n" +
                 "ДА — Поворот вокруг указанной точки\n" +
@@ -752,7 +793,7 @@ namespace Lab4Graph
             }
 
             waitingForPointPick = true;
-            Cursor = Cursors.Cross; // Меняем курсор, чтобы было видно
+            Cursor = Cursors.Cross;
         }
         //Сидорчик(конец)
 

@@ -14,11 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Lab4Graph")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-<<<<<<< Updated upstream
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dcddb80824d0a67a421c19399ca738520724ee39")]
-=======
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ee1eef2e2992464c711b79e00f3ff6aa6be6520f")]
->>>>>>> Stashed changes
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ae1e98c4373891259c45a65bdc17501ebbc652b4")]
 [assembly: System.Reflection.AssemblyProductAttribute("Lab4Graph")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Lab4Graph")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

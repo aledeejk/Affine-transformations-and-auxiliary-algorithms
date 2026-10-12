@@ -43,6 +43,7 @@ namespace Lab4Graph
         private double pendingDelta = 1;
         // Угол для отложенного поворота
         private double pendingPhi = 0;
+
         // ============================================================
         // Пункты 8–10: режимы проверок
         private enum CheckMode { None, Intersect, PointInPoly, SideOfEdge }
@@ -59,8 +60,9 @@ namespace Lab4Graph
         // Сохранённые результаты для отрисовки (чтобы не терялись при Redraw)
         private readonly List<(PointF pt, string text)> checkHints =
             new List<(PointF, string)>();
-        private readonly List<(PointF a, PointF b, PointF p, string text)> sideResults = new List<(PointF, PointF, PointF, string)>();
-        
+        private readonly List<(PointF a, PointF b, PointF p, string text)> sideResults =
+            new List<(PointF, PointF, PointF, string)>();
+
         // ============================================================
 
         public MainForm()
@@ -102,6 +104,7 @@ namespace Lab4Graph
             btnRotate.Click += BtnRotate_Click;
             btnScale.Click += BtnScale_Click;
             btnReflectY.Click += BtnReflectY_Click;
+
             //Сидорчик
             btnPickPoint.Click += BtnPickPoint_Click;
             btnRotateCenter.Click += BtnRotateCenter_Click;
@@ -249,7 +252,7 @@ namespace Lab4Graph
         }
 
         // ПЕРЕКЛЮЧИТЬ выделение одного полигона (toggle)
-        // НЕ трогает остальные!
+        // НЕ трогает остальные
         private void ToggleSelection(Polygon poly)
         {
             poly.Selected = !poly.Selected;
@@ -278,8 +281,8 @@ namespace Lab4Graph
         private void Canvas_MouseDown(object? sender, MouseEventArgs e)
         {
             var pt = new PointF(e.X, e.Y);
-            //Сидорчик(начало)
-            //  режим выбора точки мышью 
+
+            // ── Сидорчик: режим выбора точки мышью ──────────────────
             if (waitingForPointPick && e.Button == MouseButtons.Left)
             {
                 waitingForPointPick = false;
@@ -319,10 +322,15 @@ namespace Lab4Graph
                 Redraw();
                 return;
             }
+<<<<<<< Updated upstream
             //Сидорчик (конец)
+=======
+
+            // ── ПРАВАЯ КНОПКА МЫШИ ─────────────────────────────────
+            // ПКМ — либо выход из режима проверки, либо замыкание полигона
+>>>>>>> Stashed changes
             if (e.Button == MouseButtons.Right)
             {
-                // ПКМ — выйти из режима проверки
                 if (checkMode != CheckMode.None)
                 {
                     SetCheckMode(CheckMode.None);
@@ -332,6 +340,7 @@ namespace Lab4Graph
                 return;
             }
 
+            // ── Дальше обрабатываем только ЛКМ ─────────────────────
             if (e.Button != MouseButtons.Left) return;
 
             // === Режимы проверок 8–10 ===
@@ -344,7 +353,11 @@ namespace Lab4Graph
             {
                 var hit = FindPolygonAt(pt, 8f);
                 if (hit != null) ToggleSelection(hit);
-                else { DeselectAll(); statusLabel.Text = "Выделение снято. Преобразования — ко ВСЕМ."; }
+                else
+                {
+                    DeselectAll();
+                    statusLabel.Text = "Выделение снято. Преобразования — ко ВСЕМ.";
+                }
                 return;
             }
 
@@ -424,7 +437,7 @@ namespace Lab4Graph
         {
             coordsLabel.Text = $"({e.X}, {e.Y})";
 
-            // Перерисовка для превью линии (поставили первую точку, а вторую нет, отрисовываем линию динамически, чтобы было представление, как она будет выглядеть)
+            // Перерисовка для превью линии
             if (checkMode == CheckMode.Intersect && intersectFirstPoint != null)
                 Redraw();
             else if (checkMode == CheckMode.SideOfEdge &&
@@ -650,8 +663,9 @@ namespace Lab4Graph
             },
             "Отражение: каждый от своего центра");
         }
+
         //Сидорчик (начало)
-        //  ПОВОРОТ ВОКРУГ СВОЕГО ЦЕНТРА 
+        //  ПОВОРОТ ВОКРУГ СВОЕГО ЦЕНТРА
         private void BtnRotateCenter_Click(object? sender, EventArgs e)
         {
             if (polygons.Count == 0)
@@ -670,7 +684,7 @@ namespace Lab4Graph
             }, $"Поворот на {deg}° вокруг СВОЕГО центра");
         }
 
-        // МАСШТАБ ВОКРУГ СВОЕГО ЦЕНТРА 
+        // МАСШТАБ ВОКРУГ СВОЕГО ЦЕНТРА
         private void BtnScaleCenter_Click(object? sender, EventArgs e)
         {
             if (polygons.Count == 0)
@@ -695,7 +709,7 @@ namespace Lab4Graph
             }, $"Масштаб α={alpha}, δ={delta} вокруг СВОЕГО центра");
         }
 
-        // ЗАДАТЬ ТОЧКУ МЫШЬЮ 
+        // ЗАДАТЬ ТОЧКУ МЫШЬЮ
         private void BtnPickPoint_Click(object? sender, EventArgs e)
         {
             if (polygons.Count == 0)
